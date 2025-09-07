@@ -3,18 +3,18 @@
 ## Executive Summary
 
 ### Product Vision
-Transform static audience data tables into an interactive, insight-rich experience that reveals cross-audience relationships through intuitive visual storytelling. By combining detailed demographic tooltips with animated connection lines, we enable stakeholders to quickly discover and understand audience overlap patterns, fostering data-driven decision making in content strategy and audience targeting.
+Enable content strategists and stakeholders to discover valuable audience overlap insights when comparing two Audios or Newsletters. By transforming static audience segment tables into an interactive experience with detailed demographic tooltips and animated connection lines, we reveal which listener/subscriber segments are shared between content properties, empowering data-driven decisions for cross-promotion, content collaboration, and audience development strategies.
 
 ### Success Metrics
 **Primary Metrics:**
 - **Engagement Rate**: >75% of users interact with tooltip functionality during table viewing sessions
-- **Insight Discovery**: >60% of users discover previously unknown audience overlaps through line animations
-- **Task Completion**: >90% of users successfully identify shared audience segments within 30 seconds
+- **Insight Discovery**: >60% of users discover previously unknown audience overlaps between Audio/Newsletter properties through line animations
+- **Task Completion**: >90% of users successfully identify cross-promotional opportunities within 30 seconds
 
 **Secondary Metrics:**
-- **Copy Feature Usage**: >40% of tooltip interactions include copying talking points for external sharing
-- **Session Depth**: Average 3+ tooltip interactions per table viewing session
-- **User Satisfaction**: >4.5/5 rating for "ease of understanding audience relationships"
+- **Copy Feature Usage**: >40% of tooltip interactions include copying overlap talking points for stakeholder presentations
+- **Session Depth**: Average 3+ tooltip interactions per Audio/Newsletter comparison session
+- **User Satisfaction**: >4.5/5 rating for "ease of identifying content collaboration opportunities"
 
 **Technical Performance:**
 - **Animation Smoothness**: >95% of line animations complete without frame drops
@@ -22,7 +22,7 @@ Transform static audience data tables into an interactive, insight-rich experien
 - **Cross-browser Compatibility**: 100% functionality across Chrome, Firefox, Safari, Edge
 
 ## Overview
-Interactive tooltip system for audience segment tables that displays detailed demographic information and cross-audience overlap data with animated visual connections.
+Interactive tooltip system for comparing audience segments between two Audio content or Newsletter properties. Displays detailed demographic information, cross-audience overlap percentages, and animated visual connections to highlight shared subscriber/listener segments for strategic content planning.
 
 ## Feature Specifications
 
@@ -152,4 +152,4 @@ const sharedSegments = {
 
 **Author**: Product Team  
 **Date**: January 2025  
-**Version**: 1.2 - Added Executive Summary with Product Vision and Success Metrics
+**Version**: 1.3 - Refined Product Vision for Audio/Newsletter comparison use case
