@@ -1,73 +1,63 @@
-# Enhanced Audience Overlap Tooltip - Product Requirements Document
+# Product Requirements Document (PRD)
+# Enhanced Audience Overlap Tooltip 
 
-## Executive Summary
+## Document Information
+- **Version:** 1.0
+- **Date:** 09/02/2025
+- **Status:** Ready for Development
+- **Team:** KScope Product Team
 
-### Product Vision
-Enable content strategists and stakeholders to discover valuable audience overlap insights when comparing two Audios or Newsletters. By transforming static audience segment tables into an interactive experience with detailed demographic tooltips and animated connection lines, we reveal which listener/subscriber segments are shared between content properties, empowering data-driven decisions for cross-promotion, content collaboration, and audience development strategies.
+## 1. Executive Summary
 
-### Success Metrics
-**Primary Metrics:**
-- **Engagement Rate**: >75% of users interact with tooltip functionality during table viewing sessions
-- **Insight Discovery**: >60% of users discover previously unknown audience overlaps between Audio/Newsletter properties through line animations
-- **Task Completion**: >90% of users successfully identify cross-promotional opportunities within 30 seconds
+### 1.1 Project Goal
+Enable KScope users to discover valuable audience overlap insights when comparing two Audios or Newsletters.
 
-**Secondary Metrics:**
-- **Copy Feature Usage**: >40% of tooltip interactions include copying overlap talking points for stakeholder presentations
-- **Session Depth**: Average 3+ tooltip interactions per Audio/Newsletter comparison session
-- **User Satisfaction**: >4.5/5 rating for "ease of identifying content collaboration opportunities"
-
-**Technical Performance:**
-- **Animation Smoothness**: >95% of line animations complete without frame drops
-- **Load Performance**: Tooltip appears within 200ms of hover trigger
-- **Cross-browser Compatibility**: 100% functionality across Chrome, Firefox, Safari, Edge
-
-## Overview
-Interactive tooltip system for comparing audience segments between two Audio content or Newsletter properties. Displays detailed demographic information, cross-audience overlap percentages, and animated visual connections to highlight shared subscriber/listener segments for strategic content planning.
+### 1.2 Success Metrics
+TBD
 
 ## Feature Specifications
 
 ### 1. Interaction Behavior
-**Requirement**: Sticky tooltip interaction with safe navigation
-- **Trigger**: Mouse hover on any table row
-- **Positioning**: Tooltip overlaps source row by 10px (creates safe horizontal navigation corridor)
-- **Persistence**: Tooltip remains visible until user clicks outside
-- **Navigation**: Users can move mouse horizontally within row space to reach tooltip without triggering adjacent rows
-- **Close**: Click anywhere outside tooltip or table rows to dismiss
-- **Multi-tooltip**: Opening new tooltip automatically closes previous one
+**Requirement:** Sticky tooltip interaction with safe navigation
+
+- **Trigger:** Mouse hover on any table row
+- **Positioning:** Tooltip overlaps source row by 10px (creates safe horizontal navigation corridor)
+- **Navigation:** Users can move mouse horizontally within row space to reach tooltip without triggering adjacent rows
+- **Close:** Click anywhere outside tooltip or table rows to dismiss
+- **Multi-tooltip:** Opening new tooltip automatically closes previous one
 
 ### 2. Overlap Label (OVERLAPS Badge)
-**Requirement**: Visual indicator for shared audience segments
-- **Display**: Only shown for segments that exist in both audience tables
-- **Style**: Rounded badge with segment-specific background color
-- **Text**: "OVERLAPS" in uppercase, small font weight
-- **Colors**: 
-  - Tech Industry: `#ccebc5` (light green)
-  - Wellness & Self Care: `#fddaec` (light pink)
-  - Art Aficionados: `#fbb4ae` (light coral)
-  - Fitness and Nutrition: `#decbe4` (light purple)
+**Requirement:** Visual indicator for shared audience segments
+
+- **Display:** Only shown for segments that exist in both audience tables
+- **Style:** Rounded badge with segment-specific background color
+- **Text:** "OVERLAPS" in uppercase, small font weight
+- **Colors:** Match overlapped segment colors
 
 ### 3. Dotted Line Animation
-**Requirement**: Animated connection line between matching segments
-- **Trigger**: Appears 400ms after tooltip is shown (for shared segments only)
-- **Animation**: Line draws from left table to right table using true line growth (not stroke-dashoffset)
-- **Visibility**: Tooltip positioned left (15% from edge) to ensure line animation remains visible in center gap
-- **Style**: 
+**Requirement:** Animated connection line between matching segments
+
+- **Trigger:** Appears 400ms after tooltip is shown (for shared segments only)
+- **Animation:** Line draws from left table to right table using true line growth (not stroke-dashoffset)
+- **Visibility:** Tooltip positioned left (15% from edge) to ensure line animation remains visible in center gap
+- **Style:**
   - 1px stroke width
-  - `stroke-dasharray: 4 3` (dotted pattern)
+  - stroke-dasharray: 4 3 (dotted pattern)
   - Color matches segment background color
   - Duration: 400ms with ease-in-out-cubic easing
-- **End dots**: 4px circles appear after line completes drawing
-- **Implementation**: Use `requestAnimationFrame` to animate `x2,y2` coordinates from start to end position
+- **End dots:** 4px circles appear after line completes drawing
 
 ### 4. Divider Line
-**Requirement**: Visual separator in tooltip
-- **Position**: Between demo rate section and audience overlap section
-- **Style**: 1px solid `#e1e1e1`
-- **Margins**: 16px top, 12px bottom
+**Requirement:** Visual separator in tooltip
+
+- **Position:** Between demo rate section and audience overlap section
+- **Style:** 1px solid #e1e1e1
+- **Margins:** 16px top, 12px bottom
 
 ### 5. Audience Overlap Icon + Title
-**Requirement**: Section header with custom icon
-- **Icon**: Custom SVG (16x16px)
+**Requirement:** Section header with custom icon
+
+- **Icon:** Custom SVG (16x16px)
   ```svg
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <circle cx="8" cy="8" r="8" fill="#346EB7"/>
@@ -76,51 +66,29 @@ Interactive tooltip system for comparing audience segments between two Audio con
     <circle cx="12" cy="10.5" r="0.5" fill="white" stroke="white"/>
   </svg>
   ```
-- **Title**: "Audience Overlap"
-- **Style**: 12px font, 600 weight, `#346eb7` color
-- **Layout**: Icon and title horizontally aligned with 8px gap
+- **Title:** "Audience Overlap"
+- **Style:** 12px font, 600 weight, #346eb7 color
+- **Layout:** Icon and title horizontally aligned with 8px gap
 
 ### 6. Overlap Number (Percentage)
-**Requirement**: Large percentage display
-- **Data Source**: Predefined overlap percentages per segment
-- **Style**: 
+**Requirement:** Large percentage display
+
+- **Data Source:** Predefined overlap percentages per segment
+- **Style:**
   - Font size: 18px
   - Font weight: 700 (bold)
-  - Color: `#346eb7` (blue)
+  - Color: #346eb7 (blue)
   - Bottom margin: 4px
 
 ### 7. Explanation Text
-**Requirement**: Descriptive text explaining the overlap
-- **Content**: Dynamic text based on segment name
-- **Format**: "of [Segment Name] audience who listen to Ezra Klein also listen to Hard Fork"
-- **Style**: 
+**Requirement:** Descriptive text explaining the overlap
+
+- **Content:** Dynamic text based on segment name
+- **Format:** "of [Segment Name] audience who listen to Ezra Klein also listen to Hard Fork"
+- **Style:**
   - Font size: 11px
-  - Color: `#666666` (gray)
+  - Color: #666666 (gray)
   - Line height: 1.4
-
-## Data Structure
-
-### Segment Overlap Data
-```javascript
-const sharedSegments = {
-  "Tech Industry": { 
-    percentage: 47, 
-    description: "of Tech Industry audience who listen to Ezra Klein also listen to Hard Fork" 
-  },
-  "Wellness & Self Care": { 
-    percentage: 23, 
-    description: "of Wellness & Self Care audience who listen to Ezra Klein also listen to Hard Fork" 
-  },
-  "Art Aficionados": { 
-    percentage: 31, 
-    description: "of Art Aficionados audience who listen to Ezra Klein also listen to Hard Fork" 
-  },
-  "Fitness and Nutrition": { 
-    percentage: 18, 
-    description: "of Fitness and Nutrition audience who listen to Ezra Klein also listen to Hard Fork" 
-  }
-};
-```
 
 ## Technical Implementation Notes
 
@@ -128,28 +96,5 @@ const sharedSegments = {
 - Calculate viewport boundaries to ensure tooltip visibility
 - Prefer above placement unless insufficient space
 - 10px overlap with source row for safe navigation
-- **Horizontal positioning**: 15% from left edge of row (optimized to preserve line animation visibility)
-- **Tooltip dimensions**: min-width 220px, max-width 260px (optimized for gap visibility)
-
-### Performance Considerations
-- Use `requestAnimationFrame` for smooth line animations
-- Debounce rapid hover events to prevent multiple tooltips
-- Clean up event listeners on component unmount
-- Optimize SVG rendering for connection lines
-
-### Accessibility
-- Ensure tooltip content is keyboard accessible
-- Provide appropriate ARIA labels
-- Maintain proper color contrast ratios
-- Support screen reader navigation
-
-## Browser Support
-- Modern browsers with ES6+ support
-- SVG animation support required
-- CSS transform and transition support required
-
----
-
-**Author**: Product Team  
-**Date**: January 2025  
-**Version**: 1.3 - Refined Product Vision for Audio/Newsletter comparison use case
+- Horizontal positioning: 15% from left edge of row (optimized to preserve line animation visibility)
+- Tooltip dimensions: min-width 220px, max-width 260px (optimized for gap visibility)
