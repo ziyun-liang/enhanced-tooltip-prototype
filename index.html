@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Tooltip - Audience Overlap Experience</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+        }
+        
+        .audience-tables {
+            display: flex;
+            gap: 100px;
+            padding: 40px;
+            position: relative;
+            min-height: 500px;
+        }
+        
+        .table-container {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 20px;
+            border-bottom: 2px solid #e1e1e1;
+        }
+        
+        .table-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin: 0;
+        }
+        
+        .table-column-headers {
+            display: flex;
+            padding: 12px 0;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        .column-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #333333;
+            text-transform: uppercase;
+        }
+        
+        .rank-col { width: 40px; text-align: center; }
+        .name-col { width: 220px; padding-left: 8px; }
+        .affinity-col { width: 159px; text-align: center; }
+        
+        .table-row {
+            display: flex;
+            height: 30px;
+            border-bottom: 1px solid #e1e1e1;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(52, 110, 183, 0.05);
+        }
+        
+        .table-row.shared-segment:hover {
+            background-color: rgba(52, 110, 183, 0.1);
+        }
+        
+        .row-rank {
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: #333333;
+        }
+        
+        .row-name {
+            width: 220px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #346eb7;
+        }
+        
+        .row-name-text {
+            display: inline-block;
+        }
+        
+        .row-name-text.shared {
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0;
+        }
+        
+        .row-affinity {
+            width: 159px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            padding-left: 8px;
+        }
+        
+        .affinity-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            opacity: 0.7;
+        }
+        
+        .affinity-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: #346eb7;
+            z-index: 2;
+            position: relative;
+        }
+        
+        .connection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+                .connection-svg {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .connection-svg.visible {
+            opacity: 0.9;
+        }
+
+        .connection-line {
+            stroke-width: 1;
+            fill: none;
+            stroke-dasharray: 4 3;
+            stroke-linecap: round;
+        }
+        
+                .connection-dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .connection-dot.visible {
+            opacity: 1;
+        }
+
+        .connection-dot.start {
+            transition-delay: 0s;
+        }
+
+        .connection-dot.end {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(0);
+            transition: all 0.25s ease;
+        }
+        
+        /* Enhanced Combined Tooltip Styles */
+        .enhanced-tooltip {
+            position: absolute;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            font-family: 'Inter', sans-serif;
+            white-space: normal;
+            min-width: 220px;
+            max-width: 260px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            border: 1px solid #e1e1e1;
+            z-index: 1000;
+        }
+        
+        .enhanced-tooltip.visible {
+            opacity: 1;
+        }
+        
+                .enhanced-tooltip.position-above {
+            transform: translate(-50%, -100%);
+            margin-top: 0px; /* Remove margin since we're overlapping */
+        }
+
+        .enhanced-tooltip.position-above.visible {
+            transform: translate(-50%, -100%) scale(1);
+        }
+
+        .enhanced-tooltip.position-below {
+            transform: translate(-50%, 0%);
+            margin-top: 0px; /* Remove margin since we're overlapping */
+        }
+
+        .enhanced-tooltip.position-below.visible {
+            transform: translate(-50%, 0%) scale(1);
+        }
+        
+        .tooltip-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .tooltip-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #000000;
+            margin: 0;
+        }
+        
+        .shared-indicator {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tooltip-date {
+            font-size: 11px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+        
+        .demo-rate-section {
+            margin-bottom: 12px;
+        }
+        
+        .demo-rate-label {
+            font-size: 11px;
+            color: #666666;
+            margin-bottom: 4px;
+        }
+        
+        .demo-rate-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 4px;
+        }
+        
+        .demo-rate-description {
+            font-size: 11px;
+            color: #666666;
+            line-height: 1.4;
+        }
+        
+        .overlap-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e1e1e1;
+        }
+        
+        .overlap-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .overlap-icon {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .overlap-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #346eb7;
+        }
+        
+        .overlap-percentage {
+            font-size: 18px;
+            font-weight: 700;
+            color: #346eb7;
+            margin-bottom: 4px;
+        }
+        
+        .overlap-description {
+            font-size: 11px;
+            color: #666666;
+            line-height: 1.4;
+        }
+        
+        .tooltip-source {
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid #e1e1e1;
+            font-size: 10px;
+            color: #999999;
+            font-style: italic;
+        }
+        
+        .copy-button {
+            margin-top: 12px;
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .copy-button:hover {
+            background: #e9ecef;
+            border-color: #346eb7;
+            color: #346eb7;
+        }
+        
+        .copy-icon {
+            width: 12px;
+            height: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Shared segment background colors
+        const sharedSegmentColors = {
+            "Tech Industry": "#ccebc5",
+            "Wellness & Self Care": "#fddaec", 
+            "Art Aficionados": "#fbb4ae",
+            "Fitness and Nutrition": "#decbe4"
+        };
+
+        const audienceData = {
+            ezraKlein: [
+                { 
+                    rank: 1, 
+                    name: "Tech Industry", 
+                    affinity: "1.61x", 
+                    barWidth: "159px", 
+                    isShared: true,
+                    demoRate: "1.15",
+                    date: "July 2025",
+                    description: "Tech industry listeners made up 1.15x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 2, 
+                    name: "Wellness & Self Care", 
+                    affinity: "1.11x", 
+                    barWidth: "109px", 
+                    isShared: true,
+                    demoRate: "1.11",
+                    date: "July 2025",
+                    description: "Wellness & Self Care listeners made up 1.11x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 3, 
+                    name: "Art Aficionados", 
+                    affinity: "1.1x", 
+                    barWidth: "108px", 
+                    isShared: true,
+                    demoRate: "1.10",
+                    date: "July 2025",
+                    description: "Art Aficionados made up 1.10x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 4, 
+                    name: "Ultra-Affluents", 
+                    affinity: "1.1x", 
+                    barWidth: "109px", 
+                    isShared: false,
+                    demoRate: "1.10",
+                    date: "July 2025",
+                    description: "Ultra-Affluents made up 1.10x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 5, 
+                    name: "Fitness and Nutrition", 
+                    affinity: "1.04x", 
+                    barWidth: "102px", 
+                    isShared: true,
+                    demoRate: "1.04",
+                    date: "July 2025",
+                    description: "Fitness and Nutrition listeners made up 1.04x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 6, 
+                    name: "Culture Vultures", 
+                    affinity: "1.02x", 
+                    barWidth: "101px", 
+                    isShared: false,
+                    demoRate: "1.02",
+                    date: "July 2025",
+                    description: "Culture Vultures made up 1.02x the share of the Ezra Klein audience as they did of the overall NYT audience"
+                }
+            ],
+            hardFork: [
+                { 
+                    rank: 1, 
+                    name: "Tech Industry", 
+                    affinity: "1.61x", 
+                    barWidth: "159px", 
+                    isShared: true,
+                    demoRate: "1.61",
+                    date: "July 2025",
+                    description: "Tech industry listeners made up 1.61x the share of the Hard Fork audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 2, 
+                    name: "IT&Software", 
+                    affinity: "1.11x", 
+                    barWidth: "109px", 
+                    isShared: false,
+                    demoRate: "1.11",
+                    date: "July 2025",
+                    description: "IT&Software professionals made up 1.11x the share of the Hard Fork audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 3, 
+                    name: "Wellness & Self Care", 
+                    affinity: "1.04x", 
+                    barWidth: "102px", 
+                    isShared: true,
+                    demoRate: "1.04",
+                    date: "July 2025",
+                    description: "Wellness & Self Care listeners made up 1.04x the share of the Hard Fork audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 4, 
+                    name: "Art Aficionados", 
+                    affinity: "1.02x", 
+                    barWidth: "95px", 
+                    isShared: true,
+                    demoRate: "1.02",
+                    date: "July 2025",
+                    description: "Art Aficionados made up 1.02x the share of the Hard Fork audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 5, 
+                    name: "Fitness and Nutrition", 
+                    affinity: "1.02x", 
+                    barWidth: "93px", 
+                    isShared: true,
+                    demoRate: "1.02",
+                    date: "July 2025",
+                    description: "Fitness and Nutrition listeners made up 1.02x the share of the Hard Fork audience as they did of the overall NYT audience"
+                },
+                { 
+                    rank: 6, 
+                    name: "Males", 
+                    affinity: "1.02x", 
+                    barWidth: "94px", 
+                    isShared: false,
+                    demoRate: "1.02",
+                    date: "July 2025",
+                    description: "Males made up 1.02x the share of the Hard Fork audience as they did of the overall NYT audience"
+                }
+            ]
+        };
+
+        // Define shared segments with overlap percentages
+        const sharedSegments = {
+            "Tech Industry": { percentage: 47, description: "of Tech Industry audience who listen to Ezra Klein also listen to Hard Fork" },
+            "Wellness & Self Care": { percentage: 23, description: "of Wellness & Self Care audience who listen to Ezra Klein also listen to Hard Fork" },
+            "Art Aficionados": { percentage: 31, description: "of Art Aficionados audience who listen to Ezra Klein also listen to Hard Fork" },
+            "Fitness and Nutrition": { percentage: 18, description: "of Fitness and Nutrition audience who listen to Ezra Klein also listen to Hard Fork" }
+        };
+
+        function EnhancedTooltip({ row, isVisible, position, onCopy }) {
+            const sharedInfo = row.isShared ? sharedSegments[row.name] : null;
+            
+            return (
+                <div 
+                    className={`enhanced-tooltip ${isVisible ? 'visible' : ''} ${position.placement === 'above' ? 'position-above' : 'position-below'}`}
+                    style={{
+                        left: `${position.x}px`,
+                        top: `${position.y}px`
+                    }}
+                >
+                    <div className="tooltip-header">
+                        <h3 className="tooltip-title">{row.name}</h3>
+                        {row.isShared && (
+                            <span 
+                                className="shared-indicator"
+                                style={{ 
+                                    backgroundColor: sharedSegmentColors[row.name],
+                                    color: '#333'
+                                }}
+                            >
+                                OVERLAPS
+                            </span>
+                        )}
+                    </div>
+                    
+                    <div className="tooltip-date">{row.date}</div>
+                    
+                    <div className="demo-rate-section">
+                        <div className="demo-rate-label">Demo Rate Index</div>
+                        <div className="demo-rate-value">{row.demoRate}</div>
+                        <div className="demo-rate-description">{row.description}</div>
+                    </div>
+                    
+                    {sharedInfo && (
+                        <div className="overlap-section">
+                            <div className="overlap-header">
+                                <div className="overlap-icon">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="8" cy="8" r="8" fill="#346EB7"/>
+                                        <path d="M4 6L11.7942 10.5" stroke="white" strokeWidth="0.5" strokeLinejoin="round" strokeDasharray="1.2 1.2"/>
+                                        <circle cx="4" cy="6" r="0.5" fill="white" stroke="white"/>
+                                        <circle cx="12" cy="10.5" r="0.5" fill="white" stroke="white"/>
+                                    </svg>
+                                </div>
+                                <div className="overlap-title">Audience Overlap</div>
+                            </div>
+                            <div className="overlap-percentage">{sharedInfo.percentage}%</div>
+                            <div className="overlap-description">{sharedInfo.description}</div>
+                        </div>
+                    )}
+                    
+                    <div className="tooltip-source">
+                        Source: NYT Internal Metrics, July 2025. These metrics are calculated using internal company data and methodologies that would not align with syndicated/3rd party data providers like Comscore or Ipsos.
+                    </div>
+                    
+                    <button className="copy-button" onClick={() => onCopy(row)}>
+                        <svg className="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Click to Copy Talking Point
+                    </button>
+                </div>
+            );
+        }
+
+        function AudienceTable({ title, data, side, onRowHover }) {
+            return (
+                <div className="table-container">
+                    <div className="table-header">
+                        <h2 className="table-title">{title}</h2>
+                    </div>
+                    <div className="table-column-headers">
+                        <div className="column-header rank-col">Rank</div>
+                        <div className="column-header name-col">Name</div>
+                        <div className="column-header affinity-col">Demo Rate Index</div>
+                    </div>
+                    <div className="table-body">
+                        {data.map((row, index) => {
+                            return (
+                                <div 
+                                    key={index}
+                                    className={`table-row ${row.isShared ? 'shared-segment' : ''}`}
+                                    onMouseEnter={(e) => onRowHover(row, side, index, e)}
+                                >
+                                    <div className="row-rank">{row.rank}</div>
+                                    <div className="row-name">
+                                        <span 
+                                            className={`row-name-text ${row.isShared ? 'shared' : ''}`}
+                                            style={{ 
+                                                backgroundColor: row.isShared ? sharedSegmentColors[row.name] : 'transparent'
+                                            }}
+                                        >
+                                            {row.name}
+                                        </span>
+                                    </div>
+                                    <div className="row-affinity">
+                                        <div 
+                                            className="affinity-bar" 
+                                            style={{ 
+                                                backgroundColor: "#ccebd3", 
+                                                width: row.barWidth 
+                                            }}
+                                        />
+                                        <div className="affinity-text">{row.demoRate}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        }
+
+        function AudienceOverlapExperience() {
+            const [connectionInfo, setConnectionInfo] = useState(null);
+            const [tooltipInfo, setTooltipInfo] = useState(null);
+            const overlayRef = useRef(null);
+
+            const handleRowHover = (row, side, rowIndex, event) => {
+                const rect = event.currentTarget.getBoundingClientRect();
+                
+                // Calculate positioning with intentional overlap
+                const tooltipHeight = 280; // Approximate tooltip height
+                const spaceAbove = rect.top;
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const margin = 20; // Safety margin
+                const rowHeight = rect.height;
+                const overlapAmount = 10; // How much tooltip overlaps with the row
+                
+                // Determine placement - prefer above unless not enough space
+                const placement = (spaceAbove >= tooltipHeight + margin) ? 'above' : 'below';
+                
+                // Create intentional overlap for safe navigation
+                let yPosition;
+                if (placement === 'above') {
+                    // Position tooltip so it overlaps with the top portion of the row
+                    yPosition = rect.top + overlapAmount;
+                } else {
+                    // Position tooltip so it overlaps with the bottom portion of the row  
+                    yPosition = rect.top - overlapAmount;
+                }
+                
+                const tooltipPosition = {
+                    x: rect.left + (rect.width * 0.15),
+                    y: yPosition,
+                    placement: placement
+                };
+
+                setTooltipInfo({
+                    row,
+                    position: tooltipPosition,
+                    isVisible: true
+                });
+
+                // If it's a shared segment, show connections with animation sequence
+                if (row.isShared) {
+                    // Show connection after tooltip appears (400ms delay for smooth sequence)
+                    setTimeout(() => {
+                        const otherTableData = side === 'left' ? audienceData.hardFork : audienceData.ezraKlein;
+                        const otherRowIndex = otherTableData.findIndex(item => item.name === row.name);
+                        
+                        if (otherRowIndex === -1) return;
+
+                        const leftRowElement = side === 'left' 
+                            ? document.querySelectorAll('.table-container')[0].querySelectorAll('.table-row')[rowIndex]
+                            : document.querySelectorAll('.table-container')[0].querySelectorAll('.table-row')[otherRowIndex];
+                            
+                        const rightRowElement = side === 'right' 
+                            ? document.querySelectorAll('.table-container')[1].querySelectorAll('.table-row')[rowIndex]
+                            : document.querySelectorAll('.table-container')[1].querySelectorAll('.table-row')[otherRowIndex];
+                        
+                        if (!leftRowElement || !rightRowElement || !overlayRef.current) return;
+
+                        const overlayRect = overlayRef.current.getBoundingClientRect();
+                        const leftRect = leftRowElement.getBoundingClientRect();
+                        const rightRect = rightRowElement.getBoundingClientRect();
+
+                        const startX = leftRect.right - overlayRect.left;
+                        const startY = leftRect.top + leftRect.height / 2 - overlayRect.top;
+                        const endX = rightRect.left - overlayRect.left;
+                        const endY = rightRect.top + rightRect.height / 2 - overlayRect.top;
+
+                        setConnectionInfo({
+                            startX,
+                            startY,
+                            endX,
+                            endY,
+                            color: sharedSegmentColors[row.name],
+                            segmentName: row.name
+                        });
+                    }, 400); // Show connections after tooltip appears
+                }
+            };
+
+            // Close tooltip when clicking outside (with better detection)
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (tooltipInfo && 
+                        !event.target.closest('.enhanced-tooltip') && 
+                        !event.target.closest('.table-row') &&
+                        !event.target.closest('.connection-overlay')) {
+                        setTooltipInfo(null);
+                        setConnectionInfo(null);
+                    }
+                };
+
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => {
+                    document.removeEventListener('mousedown', handleClickOutside);
+                };
+            }, [tooltipInfo]);
+
+
+
+            const handleCopy = (row) => {
+                const sharedInfo = row.isShared ? sharedSegments[row.name] : null;
+                let talkingPoint = `${row.name} listeners have a ${row.demoRate} demo rate index for this show, meaning they make up ${row.demoRate}x the share of the audience compared to the overall NYT audience.`;
+                
+                if (sharedInfo) {
+                    talkingPoint += ` Additionally, ${sharedInfo.percentage}% ${sharedInfo.description}.`;
+                }
+                
+                navigator.clipboard.writeText(talkingPoint);
+                // Could add a visual feedback here
+            };
+
+            return (
+                <div className="container">
+                    <div className="audience-tables">
+                        <AudienceTable 
+                            title="Top Audience Segments for Ezra Klein"
+                            data={audienceData.ezraKlein}
+                            side="left"
+                            onRowHover={handleRowHover}
+                        />
+                        <AudienceTable 
+                            title="Top Audience Segments for Hard Fork"
+                            data={audienceData.hardFork}
+                            side="right"
+                            onRowHover={handleRowHover}
+                        />
+                        
+                        <div className="connection-overlay" ref={overlayRef}>
+                            {connectionInfo && (
+                                <>
+                                    <svg 
+                                        className="connection-svg visible"
+                                        style={{
+                                            left: `${Math.min(connectionInfo.startX, connectionInfo.endX) - 10}px`,
+                                            top: `${Math.min(connectionInfo.startY, connectionInfo.endY) - 10}px`,
+                                            width: `${Math.abs(connectionInfo.endX - connectionInfo.startX) + 20}px`,
+                                            height: `${Math.abs(connectionInfo.endY - connectionInfo.startY) + 20}px`
+                                        }}
+                                    >
+                                        <line
+                                            ref={(el) => {
+                                                if (el && connectionInfo) {
+                                                    const startX = connectionInfo.startX < connectionInfo.endX ? 10 : Math.abs(connectionInfo.endX - connectionInfo.startX) + 10;
+                                                    const startY = connectionInfo.startY < connectionInfo.endY ? 10 : Math.abs(connectionInfo.endY - connectionInfo.startY) + 10;
+                                                    const endX = connectionInfo.startX < connectionInfo.endX ? Math.abs(connectionInfo.endX - connectionInfo.startX) + 10 : 10;
+                                                    const endY = connectionInfo.startY < connectionInfo.endY ? Math.abs(connectionInfo.endY - connectionInfo.startY) + 10 : 10;
+                                                    
+                                                    // Start with zero length line
+                                                    el.setAttribute('x1', startX);
+                                                    el.setAttribute('y1', startY);
+                                                    el.setAttribute('x2', startX);
+                                                    el.setAttribute('y2', startY);
+                                                    
+                                                    // Find the end dot for this connection
+                                                    const parentElement = el.closest('.connection-overlay');
+                                                    const endDot = parentElement?.querySelector('.connection-dot.end');
+                                                    
+                                                    // Animate line drawing after delay
+                                                    setTimeout(() => {
+                                                        const duration = 400;
+                                                        const startTime = Date.now();
+                                                        
+                                                        function animate() {
+                                                            const elapsed = Date.now() - startTime;
+                                                            const progress = Math.min(elapsed / duration, 1);
+                                                            const eased = progress < 0.5 
+                                                                ? 4 * progress * progress * progress 
+                                                                : 1 - Math.pow(-2 * progress + 2, 3) / 2; // ease-in-out-cubic
+                                                            
+                                                            const currentX = startX + (endX - startX) * eased;
+                                                            const currentY = startY + (endY - startY) * eased;
+                                                            
+                                                            el.setAttribute('x2', currentX);
+                                                            el.setAttribute('y2', currentY);
+                                                            
+                                                            if (progress < 1) {
+                                                                requestAnimationFrame(animate);
+                                                            } else {
+                                                                // Show end dot when line finishes
+                                                                setTimeout(() => {
+                                                                    if (endDot) {
+                                                                        endDot.style.transform = 'translate(-50%, -50%) scale(1)';
+                                                                    }
+                                                                }, 20);
+                                                            }
+                                                        }
+                                                        
+                                                        animate();
+                                                    }, 100);
+                                                }
+                                            }}
+                                            className="connection-line"
+                                            stroke={connectionInfo.color}
+                                        />
+                                    </svg>
+                                    <div 
+                                        className="connection-dot start visible"
+                                        style={{ 
+                                            backgroundColor: connectionInfo.color,
+                                            left: `${connectionInfo.startX}px`,
+                                            top: `${connectionInfo.startY}px`
+                                        }}
+                                    />
+                                    <div 
+                                        className="connection-dot end"
+                                        style={{ 
+                                            backgroundColor: connectionInfo.color,
+                                            left: `${connectionInfo.endX}px`,
+                                            top: `${connectionInfo.endY}px`
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </div>
+                        
+                        {tooltipInfo && (
+                            <EnhancedTooltip 
+                                row={tooltipInfo.row}
+                                isVisible={tooltipInfo.isVisible}
+                                position={tooltipInfo.position}
+                                onCopy={handleCopy}
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AudienceOverlapExperience />, document.getElementById('root'));
+    </script>
+</body>
+</html>
